@@ -6,6 +6,7 @@ let keyDebounceTimer = null;
 
 let selectedModelId = "";
 let selectedModelName = "Select Model";
+const configVisibilityKey = 'chat_config_visible';
 
 window.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.getElementById('sidebar');
@@ -41,8 +42,34 @@ window.addEventListener('DOMContentLoaded', () => {
     createNewChat();
   }
 
+  initializeConfigVisibility();
   focusInput();
 });
+
+function hasConfigValues() {
+  return Boolean(
+    document.getElementById('baseUrl').value.trim() ||
+    document.getElementById('apiKey').value.trim() ||
+    document.getElementById('subOnly').checked ||
+    selectedModelId
+  );
+}
+
+function setConfigVisibility(isVisible) {
+  document.body.classList.toggle('config-collapsed', !isVisible);
+  document.querySelector('.settings-toggle-btn').setAttribute('aria-expanded', String(isVisible));
+  localStorage.setItem(configVisibilityKey, String(isVisible));
+}
+
+function initializeConfigVisibility() {
+  const savedVisibility = localStorage.getItem(configVisibilityKey);
+  setConfigVisibility(savedVisibility === null ? true : savedVisibility === 'true' || !hasConfigValues());
+}
+
+function toggleConfigPanel() {
+  const isVisible = !document.body.classList.contains('config-collapsed');
+  setConfigVisibility(!isVisible);
+}
 
 function updateSubOnlyVisibility() {
   const baseUrl = document.getElementById('baseUrl').value.trim().toLowerCase();
@@ -343,6 +370,7 @@ function saveConfig() {
   chat.apiKey = document.getElementById('apiKey').value.trim();
   chat.subOnly = document.getElementById('subOnly').checked;
   saveChatsToStorage();
+  if (!hasConfigValues()) setConfigVisibility(true);
 }
 
 function onKeyInput() {

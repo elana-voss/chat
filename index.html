@@ -29,8 +29,11 @@
 
   <!-- Main Content Area -->
   <div class="main-content">
+    <div class="main-toolbar">
+      <button class="main-hamburger-btn hamburger-btn" onclick="toggleSidebar()" title="Open Sidebar" aria-controls="sidebar" aria-expanded="false">☰</button>
+      <button class="settings-toggle-btn" onclick="toggleConfigPanel()" title="Toggle Settings" aria-controls="config" aria-expanded="true">⚙</button>
+    </div>
     <div id="config">
-      <button class="main-hamburger-btn hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar" aria-controls="sidebar" aria-expanded="false">☰</button>
       <input type="text" id="baseUrl" placeholder="Base URL" value="https://nano-gpt.com/api/v1" onchange="saveConfig(); fetchModels();" oninput="updateSubOnlyVisibility()">
       <input type="password" id="apiKey" placeholder="API Key" onchange="saveConfig(); fetchModels();" oninput="onKeyInput()">
 
