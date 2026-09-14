@@ -6,12 +6,16 @@
   <title>Minimal Chat UI</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.15/dist/purify.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <!-- Collapsible Left Rail / Sidebar -->
   <div id="sidebar">
     <div class="sidebar-header">
+      <button class="hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar" aria-controls="sidebar" aria-expanded="true">☰</button>
       <button class="new-chat-btn" onclick="createNewChat()">+ New Chat</button>
     </div>
     <div class="sidebar-chats" id="sidebarChatsList"></div>
@@ -26,12 +30,12 @@
   <!-- Main Content Area -->
   <div class="main-content">
     <div id="config">
-      <button class="hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar" aria-controls="sidebar" aria-expanded="true">☰</button>
+      <button class="main-hamburger-btn hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar" aria-controls="sidebar" aria-expanded="false">☰</button>
       <input type="text" id="baseUrl" placeholder="Base URL" value="https://nano-gpt.com/api/v1" onchange="saveConfig(); fetchModels();" oninput="updateSubOnlyVisibility()">
       <input type="password" id="apiKey" placeholder="API Key" onchange="saveConfig(); fetchModels();" oninput="onKeyInput()">
 
       <label id="subOnlyContainer">
-        <input type="checkbox" id="subOnly" onchange="fetchModels()"> Sub Only
+        <input type="checkbox" id="subOnly" onchange="saveConfig(); fetchModels()"> Sub Only
       </label>
 
       <div class="filter-wrapper">

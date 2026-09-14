@@ -9,11 +9,14 @@ let selectedModelName = "Select Model";
 
 window.addEventListener('DOMContentLoaded', () => {
   const sidebar = document.getElementById('sidebar');
-  const mobileQuery = window.matchMedia('(max-width: 700px)');
+  const mobileQuery = window.matchMedia('(max-width: 800px)');
   const updateSidebarForViewport = () => {
     const isCollapsed = mobileQuery.matches;
     sidebar.classList.toggle('collapsed', isCollapsed);
-    document.querySelector('.hamburger-btn').setAttribute('aria-expanded', String(!isCollapsed));
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+    document.querySelectorAll('.hamburger-btn').forEach((btn) => {
+      btn.setAttribute('aria-expanded', String(!isCollapsed));
+    });
   };
   updateSidebarForViewport();
   mobileQuery.addEventListener('change', updateSidebarForViewport);
@@ -28,10 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   updateSubOnlyVisibility();
 
-  if (savedKey) {
-    document.getElementById('apiKey').value = savedKey;
-    fetchModels();
-  }
+  if (savedKey) document.getElementById('apiKey').value = savedKey;
 
   loadChatsFromStorage();
 
@@ -67,7 +67,10 @@ function scrollToBottom() {
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const isCollapsed = sidebar.classList.toggle('collapsed');
-  document.querySelector('.hamburger-btn').setAttribute('aria-expanded', String(!isCollapsed));
+  document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  document.querySelectorAll('.hamburger-btn').forEach((btn) => {
+    btn.setAttribute('aria-expanded', String(!isCollapsed));
+  });
 }
 
 function escapeHtml(str) {
@@ -87,7 +90,7 @@ function extractAndFormatThinking(text) {
 
   const replacer = (match, firstCapture, secondCapture) => {
     const content = typeof secondCapture === 'string' ? secondCapture : firstCapture;
-    const trimmed = content.trim();
+    const trimmed = content.replace(/\r\n/g, '\n').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
     if (!trimmed) return '';
     return `\n\n<details class="thinking-block">
                   <summary>View Thinking Process</summary>
@@ -104,6 +107,8 @@ function normalizeChat(chat) {
   if (!chat || typeof chat !== 'object') return null;
   if (!Array.isArray(chat.messages)) chat.messages = [];
   chat.systemPrompt = typeof chat.systemPrompt === 'string' ? chat.systemPrompt : 'You are a helpful agent';
+  chat.modelId = typeof chat.modelId === 'string' ? chat.modelId : '';
+  chat.modelName = typeof chat.modelName === 'string' ? chat.modelName : '';
   chat.baseUrl = typeof chat.baseUrl === 'string' ? chat.baseUrl : (localStorage.getItem('chat_base_url') || 'https://nano-gpt.com/api/v1');
   chat.apiKey = typeof chat.apiKey === 'string' ? chat.apiKey : (localStorage.getItem('chat_api_key') || '');
   chat.subOnly = !!chat.subOnly;
@@ -221,7 +226,7 @@ function switchChat(id) {
   const chat = chats.find(c => c.id === id);
 
   if (chat && chat.modelId) {
-    setDisplayModel(chat.modelId, chat.modelName);
+    setDisplayModel(chat.modelId, chat.modelName || chat.modelId);
   } else if (selectedModelId) {
     setDisplayModel(selectedModelId, selectedModelName);
   }
@@ -230,6 +235,7 @@ function switchChat(id) {
   renderSidebar();
   renderSystemPromptEditor();
   renderCurrentChatMessages();
+  if (chat?.apiKey) fetchModels();
 }
 
 function deleteChat(id, event) {
@@ -326,17 +332,7 @@ function selectOption(id, name) {
 }
 
 function formatModelName(m) {
-  let displayName = m.name || m.id;
-  if (m.name && m.id && m.name !== m.id) {
-    let cleanId = m.id;
-    if (cleanId.includes('/')) {
-      cleanId = cleanId.split('/').slice(1).join('/');
-    }
-    if (m.name.toLowerCase() !== cleanId.toLowerCase()) {
-      displayName = `${m.name} (${cleanId})`;
-    }
-  }
-  return displayName;
+  return m.name || m.id;
 }
 
 function saveConfig() {
@@ -361,6 +357,7 @@ function onKeyInput() {
 
 async function fetchModels() {
   const chat = getCurrentChat();
+  const requestChatId = currentChatId;
   const rawUrl = (chat && typeof chat.baseUrl === 'string' ? chat.baseUrl : document.getElementById('baseUrl').value.trim()).trim();
   const apiKey = (chat && typeof chat.apiKey === 'string' ? chat.apiKey : document.getElementById('apiKey').value.trim()).trim();
   const subOnly = chat ? !!chat.subOnly : document.getElementById('subOnly').checked;
@@ -387,6 +384,7 @@ async function fetchModels() {
     const data = await res.json();
 
     allModels = data.data || [];
+    if (currentChatId !== requestChatId) return;
     applyModelFilter();
 
   } catch (e) {
@@ -483,6 +481,9 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
+  const chat = chats.find(c => c.id === currentChatId);
+  if (!chat) return;
+
   const rawUrl = (chat.baseUrl || document.getElementById('baseUrl').value.trim()).trim();
   const baseUrl = rawUrl.replace(/\/$/, "");
   const apiKey = (chat.apiKey || document.getElementById('apiKey').value.trim()).trim();
@@ -492,9 +493,6 @@ async function sendMessage() {
     alert("Please select a valid model first.");
     return;
   }
-
-  const chat = chats.find(c => c.id === currentChatId);
-  if (!chat) return;
 
   if (chat.messages.length === 0) {
     chat.title = text.length > 25 ? text.substring(0, 25) + '...' : text;
@@ -511,10 +509,9 @@ async function sendMessage() {
   }
 
   chat.messages.forEach(msg => {
-    requestMessages.push({
-      role: msg.role,
-      content: typeof msg.content === 'string' ? stripReasoningFromContent(msg.content) : ''
-    });
+    const content = typeof msg.content === 'string' ? stripReasoningFromContent(msg.content) : '';
+    if (msg.role === 'assistant' && !content.trim()) return;
+    requestMessages.push({ role: msg.role, content });
   });
 
   const chatEl = document.getElementById('chat');

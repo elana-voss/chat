@@ -2,14 +2,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 
 /* --- SIDEBAR / LEFT RAIL --- */
 #sidebar {
-  width: 260px; background: #222; border-right: 1px solid #333;
+  width: 256px; box-sizing: border-box; background: #222; border-right: 1px solid #333;
   display: flex; flex-direction: column; transition: width 0.2s ease, transform 0.2s ease; overflow: hidden; flex-shrink: 0;
 }
 #sidebar.collapsed { width: 0; border-right: none; }
 .sidebar-backdrop { display: none; }
 
-.sidebar-header { padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; background: #1a1a1a; }
-.new-chat-btn { width: 100%; padding: 8px; background: #0066cc; border: none; border-radius: 4px; color: #fff; font-weight: 500; cursor: pointer; }
+.sidebar-header { padding: 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #333; background: #1a1a1a; }
+.hamburger-btn { flex-shrink: 0; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; background: #333; border: 1px solid #444; color: #fff; font-size: 14px; padding: 0; border-radius: 4px; cursor: pointer; }
+.hamburger-btn:hover { background: #444; }
+.main-hamburger-btn { display: none; }
+#sidebar.collapsed ~ .main-content .main-hamburger-btn,
+.sidebar-collapsed .main-hamburger-btn,
+body.sidebar-collapsed .main-hamburger-btn { display: inline-flex; }
+.new-chat-btn { flex: 1; padding: 8px; background: #0066cc; border: none; border-radius: 4px; color: #fff; font-weight: 500; cursor: pointer; }
 .new-chat-btn:hover { background: #0052a3; }
 
 .sidebar-chats { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
@@ -40,7 +46,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 }
 
 /* --- MAIN CONTENT AREA --- */
-.main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; font-family: "Public Sans", sans-serif; }
 
 #config {
   box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
@@ -48,10 +54,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   min-width: 0;
 }
 
-.hamburger-btn { background: #333; border: 1px solid #444; color: #fff; font-size: 16px; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
-.hamburger-btn:hover { background: #444; }
-
-input[type="text"], input[type="password"], button { box-sizing: border-box; padding: 8px 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: #fff; font-size: 14px; }
+input[type="text"], input[type="password"], button { box-sizing: border-box; padding: 8px 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: #fff; font: inherit; font-size: 14px; }
 
 #baseUrl { width: 220px; flex: 1 1 220px; min-width: 0; }
 #apiKey { width: 120px; flex: 1 1 120px; min-width: 0; }
@@ -97,10 +100,10 @@ button.stop-btn:hover { background: #c9302c; }
 
 label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; white-space: nowrap; user-select: none; }
 
-#chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+#chat { flex: 1; overflow-y: auto; box-sizing: border-box; padding: 48px max(16px, calc((100% - 768px) / 2)) 128px; display: flex; flex-direction: column; gap: 28px; }
 .msg { max-width: 85%; padding: 10px 14px; border-radius: 8px; word-break: break-word; }
 .user { align-self: flex-end; background: #0066cc; white-space: pre-wrap; }
-.assistant { align-self: flex-start; background: #333; border: 1px solid #444; }
+.assistant { align-self: flex-start; width: 100%; max-width: 100%; padding: 0; background: transparent; border: none; }
 .assistant.streaming { min-width: 48px; min-height: 20px; }
 .assistant.streaming::before { content: '•••'; color: #aaa; letter-spacing: 4px; animation: streaming-pulse 1.2s ease-in-out infinite; }
 @keyframes streaming-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
@@ -108,7 +111,7 @@ label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: p
 .assistant p { margin: 0 0 10px 0; line-height: 1.5; }
 .assistant p:last-child { margin: 0; }
 .assistant pre { background: #000; padding: 12px; border-radius: 6px; overflow-x: auto; margin: 8px 0; border: 1px solid #444; }
-.assistant code { background: #000; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 0.9em; color: #ffcc00; }
+.assistant code { background: #000; padding: 2px 4px; border-radius: 4px; font-family: inherit; font-size: 0.9em; color: #ffcc00; }
 .assistant pre code { color: #e6e6e6; padding: 0; }
 .assistant table { border-collapse: collapse; margin: 10px 0; width: 100%; }
 .assistant th, .assistant td { border: 1px solid #555; padding: 8px; text-align: left; }
@@ -116,48 +119,55 @@ label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: p
 
 /* --- THINKING BLOCKS --- */
 .thinking-block {
-  margin: 10px 0;
-  border: 1px solid #444;
-  border-radius: 6px;
-  background: #222;
-  overflow: hidden;
+  margin: 0 0 12px;
+  border: none;
+  background: transparent;
 }
 .thinking-block summary {
   cursor: pointer;
-  padding: 8px 12px;
+  width: fit-content;
+  padding: 0;
   font-size: 13px;
-  font-weight: 600;
-  color: #aaa;
-  background: #2a2a2a;
+  font-weight: 500;
+  color: #888;
+  background: transparent;
   user-select: none;
-  transition: background 0.2s, color 0.2s;
+  transition: color 0.2s;
 }
 .thinking-block summary:hover {
-  background: #333;
-  color: #fff;
+  color: #bbb;
 }
 .thinking-content {
-  border-top: 1px solid #444;
-  padding: 12px;
+  padding: 8px 0 0 18px;
   font-size: 13.5px;
-  color: #bbb;
+  color: #999;
+  line-height: 1.35;
   white-space: pre-wrap;
-  background: #1a1a1a;
-  font-family: monospace;
+  font-family: inherit;
 }
+.thinking-content p { margin: 0 0 6px; line-height: 1.35; }
+.thinking-content p:last-child { margin-bottom: 0; }
 
 #input-box { display: flex; padding: 12px; gap: 8px; background: #2a2a2a; border-top: 1px solid #333; }
 #message-input { flex: 1; font-size: 16px; }
 
-@media (max-width: 700px) {
-  #sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; width: min(260px, 85vw); border-right: 1px solid #333; box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35); }
-  #sidebar.collapsed { width: min(260px, 85vw); border-right: 1px solid #333; transform: translateX(-100%); }
+@media (max-width: 800px) {
+  #sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; width: min(256px, 85vw); height: 100dvh; border-right: 1px solid #333; box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35); }
+  #sidebar.collapsed { width: min(256px, 85vw); border-right: 1px solid #333; transform: translateX(-100%); }
   .sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.55); opacity: 1; transition: opacity 0.2s ease, visibility 0.2s ease; }
   #sidebar.collapsed + .sidebar-backdrop { opacity: 0; visibility: hidden; pointer-events: none; }
+  #sidebar.collapsed ~ .main-content .main-hamburger-btn,
+  body.sidebar-collapsed .main-hamburger-btn { display: inline-flex; }
   .main-content { width: 100%; min-width: 0; }
-  #config { padding: 10px; gap: 8px; align-items: stretch; }
-  #baseUrl, #apiKey, .filter-wrapper, .custom-select-wrapper { width: 100%; max-width: none; flex-basis: 100%; }
+  #config { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 34px 34px; gap: 8px; align-items: center; padding: 10px; }
+  #config .main-hamburger-btn { grid-column: 1; grid-row: 1; }
+  #baseUrl { grid-column: 2; grid-row: 1; width: 100%; }
+  #apiKey { grid-column: 3; grid-row: 1; width: 100%; }
+  #subOnlyContainer { grid-column: 1 / 2; grid-row: 2; }
+  .filter-wrapper { grid-column: 2; grid-row: 2; width: 100%; }
+  .custom-select-wrapper { grid-column: 3; grid-row: 2; width: 100%; max-width: none; }
   .filter-wrapper input, .custom-select-display { width: 100%; }
   .custom-select-options { max-width: 100%; }
+  #chat { padding: 48px 16px 128px; gap: 22px; }
   #input-box { padding: 10px; }
 }
