@@ -13,9 +13,10 @@
     /* --- SIDEBAR / LEFT RAIL --- */
     #sidebar { 
       width: 260px; background: #222; border-right: 1px solid #333; 
-      display: flex; flex-direction: column; transition: width 0.2s ease; overflow: hidden; flex-shrink: 0;
+      display: flex; flex-direction: column; transition: width 0.2s ease, transform 0.2s ease; overflow: hidden; flex-shrink: 0;
     }
     #sidebar.collapsed { width: 0; border-right: none; }
+    .sidebar-backdrop { display: none; }
     
     .sidebar-header { padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; background: #1a1a1a; }
     .new-chat-btn { width: 100%; padding: 8px; background: #0066cc; border: none; border-radius: 4px; color: #fff; font-weight: 500; cursor: pointer; }
@@ -37,39 +38,39 @@
     .main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     
     #config { 
-      display: flex; flex-wrap: wrap; gap: 12px; align-items: center; 
+        box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; 
       padding: 12px 16px; background: #2a2a2a; border-bottom: 1px solid #333; 
+      min-width: 0;
     }
     
     .hamburger-btn { background: #333; border: 1px solid #444; color: #fff; font-size: 16px; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
     .hamburger-btn:hover { background: #444; }
 
-    input[type="text"], input[type="password"], button { padding: 8px 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: #fff; font-size: 14px; }
+    input[type="text"], input[type="password"], button { box-sizing: border-box; padding: 8px 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: #fff; font-size: 14px; }
     
-    #baseUrl { width: 220px; }
-    #apiKey { width: 120px; }
+    #baseUrl { width: 220px; flex: 1 1 220px; min-width: 0; }
+    #apiKey { width: 120px; flex: 1 1 120px; min-width: 0; }
 
-    .filter-wrapper { position: relative; display: inline-flex; align-items: center; }
-    .filter-wrapper input { padding-right: 26px; width: 140px; }
+    .filter-wrapper { position: relative; display: inline-flex; align-items: center; min-width: 0; }
+    .filter-wrapper input { padding-right: 26px; width: 140px; min-width: 0; }
     #clearFilterBtn {
       position: absolute; right: 8px; cursor: pointer; color: #888;
       font-size: 16px; line-height: 1; display: none; user-select: none; font-weight: bold;
     }
     #clearFilterBtn:hover { color: #fff; }
 
-    .custom-select-wrapper { position: relative; flex: 1; min-width: 200px; max-width: 450px; }
+    .custom-select-wrapper { position: relative; box-sizing: border-box; flex: 1 1 240px; min-width: 0; max-width: 450px; }
     .custom-select-display {
       padding: 8px 10px; border-radius: 4px; border: 1px solid #444; background: #333; color: #fff; font-size: 14px;
       cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      display: flex; justify-content: space-between; align-items: center;
+      box-sizing: border-box; display: flex; justify-content: space-between; align-items: center;
     }
     .custom-select-display::after { content: '▼'; font-size: 10px; margin-left: 8px; color: #888; flex-shrink: 0; }
     
-    /* FIX: Changed left: 0; to right: 0; */
     .custom-select-options {
       display: none; position: absolute; top: 100%; left: 0; margin-top: 4px;
       background: #2a2a2a; border: 1px solid #555; border-radius: 4px;
-      max-height: 50vh; overflow-y: auto; width: 100%; 
+      max-height: min(50vh, 360px); overflow-y: auto; width: 100%; max-width: calc(100vw - 32px);
       box-sizing: border-box; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.6);
     }
     .custom-select-options.show { display: block; }
@@ -95,6 +96,9 @@
     .msg { max-width: 85%; padding: 10px 14px; border-radius: 8px; word-break: break-word; }
     .user { align-self: flex-end; background: #0066cc; white-space: pre-wrap; }
     .assistant { align-self: flex-start; background: #333; border: 1px solid #444; }
+    .assistant.streaming { min-width: 48px; min-height: 20px; }
+    .assistant.streaming::before { content: '•••'; color: #aaa; letter-spacing: 4px; animation: streaming-pulse 1.2s ease-in-out infinite; }
+    @keyframes streaming-pulse { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
     
     .assistant p { margin: 0 0 10px 0; line-height: 1.5; }
     .assistant p:last-child { margin: 0; }
@@ -139,6 +143,19 @@
 
     #input-box { display: flex; padding: 12px; gap: 8px; background: #2a2a2a; border-top: 1px solid #333; }
     #message-input { flex: 1; font-size: 16px; }
+
+    @media (max-width: 700px) {
+      #sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; width: min(260px, 85vw); border-right: 1px solid #333; box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35); }
+      #sidebar.collapsed { width: min(260px, 85vw); border-right: 1px solid #333; transform: translateX(-100%); }
+      .sidebar-backdrop { display: block; position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, 0.55); opacity: 1; transition: opacity 0.2s ease, visibility 0.2s ease; }
+      #sidebar.collapsed + .sidebar-backdrop { opacity: 0; visibility: hidden; pointer-events: none; }
+      .main-content { width: 100%; min-width: 0; }
+      #config { padding: 10px; gap: 8px; align-items: stretch; }
+      #baseUrl, #apiKey, .filter-wrapper, .custom-select-wrapper { width: 100%; max-width: none; flex-basis: 100%; }
+      .filter-wrapper input, .custom-select-display { width: 100%; }
+      .custom-select-options { max-width: 100%; }
+      #input-box { padding: 10px; }
+    }
   </style>
 </head>
 <body>
@@ -150,11 +167,12 @@
     </div>
     <div class="sidebar-chats" id="sidebarChatsList"></div>
   </div>
+  <div class="sidebar-backdrop" onclick="toggleSidebar()" aria-hidden="true"></div>
 
   <!-- Main Content Area -->
   <div class="main-content">
     <div id="config">
-      <button class="hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
+      <button class="hamburger-btn" onclick="toggleSidebar()" title="Toggle Sidebar" aria-controls="sidebar" aria-expanded="true">☰</button>
       <input type="text" id="baseUrl" placeholder="Base URL" value="https://nano-gpt.com/api/v1" onchange="saveConfig(); fetchModels();" oninput="updateSubOnlyVisibility()">
       <input type="password" id="apiKey" placeholder="API Key" onchange="saveConfig(); fetchModels();" oninput="onKeyInput()">
       
@@ -192,6 +210,16 @@
     let selectedModelName = "Select Model";
 
     window.addEventListener('DOMContentLoaded', () => {
+      const sidebar = document.getElementById('sidebar');
+      const mobileQuery = window.matchMedia('(max-width: 700px)');
+      const updateSidebarForViewport = () => {
+        const isCollapsed = mobileQuery.matches;
+        sidebar.classList.toggle('collapsed', isCollapsed);
+        document.querySelector('.hamburger-btn').setAttribute('aria-expanded', String(!isCollapsed));
+      };
+      updateSidebarForViewport();
+      mobileQuery.addEventListener('change', updateSidebarForViewport);
+
       const savedUrl = localStorage.getItem('chat_base_url');
       const savedKey = localStorage.getItem('chat_api_key');
       if (savedUrl) document.getElementById('baseUrl').value = savedUrl;
@@ -235,7 +263,9 @@
     }
 
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('collapsed');
+      const sidebar = document.getElementById('sidebar');
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      document.querySelector('.hamburger-btn').setAttribute('aria-expanded', String(!isCollapsed));
     }
 
     function escapeHtml(str) {
@@ -255,7 +285,8 @@
       const tagRegex = /<\|?(?:s_)?(?:think|thought|thinking|reasoning)(?:_start)?\|?>([\s\S]*?)(?:<\|?(?:\/|e_)?(?:think|thought|thinking|reasoning)(?:_end)?\|?>|$)/gi;
       const bracketRegex = /\[(think|thought|thinking|reasoning)\]([\s\S]*?)(?:\[\/\1\]|$)/gi;
 
-      const replacer = (match, tag, content) => {
+      const replacer = (match, firstCapture, secondCapture) => {
+        const content = typeof secondCapture === 'string' ? secondCapture : firstCapture;
         const trimmed = content.trim();
         if (!trimmed) return '';
         return `\n\n<details class="thinking-block">
@@ -586,7 +617,9 @@
       input.value = '';
 
       const assistantDiv = document.createElement('div');
-      assistantDiv.className = 'msg assistant';
+      assistantDiv.className = 'msg assistant streaming';
+      assistantDiv.setAttribute('aria-busy', 'true');
+      assistantDiv.setAttribute('aria-label', 'Waiting for response');
       assistantDiv.innerHTML = '';
       chatEl.appendChild(assistantDiv);
       scrollToBottom();
@@ -622,6 +655,52 @@
         const reader = res.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = '';
+        const renderAssistant = () => {
+          assistantDiv.classList.remove('streaming');
+          assistantDiv.setAttribute('aria-busy', 'false');
+          assistantDiv.removeAttribute('aria-label');
+          assistantDiv.innerHTML = marked.parse(extractAndFormatThinking(accumulatedContent));
+          scrollToBottom();
+        };
+        const processStreamLine = (line) => {
+          const trimmedLine = line.trim();
+          if (!trimmedLine || trimmedLine.startsWith(':')) return;
+
+          const payload = trimmedLine.startsWith('data:')
+            ? trimmedLine.slice(5).trim()
+            : '';
+          if (!payload || payload === '[DONE]') return;
+
+          let parsed;
+          try {
+            parsed = JSON.parse(payload);
+          } catch (e) {
+            console.warn('Ignoring malformed stream event:', payload, e);
+            return;
+          }
+
+          const delta = parsed.choices?.[0]?.delta || {};
+          const reasoning = delta.reasoning_content || delta.reasoning || delta.thinking;
+          const content = delta.content;
+
+          if (typeof reasoning === 'string' && reasoning) {
+            if (!isReasoningActive) {
+              accumulatedContent += '<think>';
+              isReasoningActive = true;
+            }
+            accumulatedContent += reasoning;
+          }
+
+          if (typeof content === 'string' && content) {
+            if (isReasoningActive) {
+              accumulatedContent += '</think>';
+              isReasoningActive = false;
+            }
+            accumulatedContent += content;
+          }
+
+          if (reasoning || content) renderAssistant();
+        };
 
         while (true) {
           const { done, value } = await reader.read();
@@ -631,55 +710,29 @@
           const lines = buffer.split('\n');
           buffer = lines.pop(); // Retain unfinished line fragment
 
-          for (const line of lines) {
-            const trimmedLine = line.trim();
-            if (!trimmedLine || trimmedLine.startsWith(':')) continue;
-            if (trimmedLine === 'data: [DONE]') continue;
-
-            if (trimmedLine.startsWith('data: ')) {
-              try {
-                const parsed = JSON.parse(trimmedLine.slice(6));
-                const delta = parsed.choices?.[0]?.delta || {};
-
-                // Handles separate API reasoning fields (e.g. DeepSeek / OpenRouter / Ollama)
-                const reasoning = delta.reasoning_content || delta.reasoning || delta.thinking;
-                const content = delta.content;
-
-                if (reasoning) {
-                  if (!isReasoningActive) {
-                    accumulatedContent += '<think>';
-                    isReasoningActive = true;
-                  }
-                  accumulatedContent += reasoning;
-                }
-
-                if (content) {
-                  if (isReasoningActive) {
-                    accumulatedContent += '</think>';
-                    isReasoningActive = false;
-                  }
-                  accumulatedContent += content;
-                }
-
-                assistantDiv.innerHTML = marked.parse(extractAndFormatThinking(accumulatedContent));
-                scrollToBottom();
-              } catch (e) {
-                // Ignore chunk JSON parse errors
-              }
-            }
-          }
+          lines.forEach(processStreamLine);
         }
+
+        buffer += decoder.decode();
+        if (buffer.trim()) processStreamLine(buffer);
 
         if (isReasoningActive) {
           accumulatedContent += '</think>';
           isReasoningActive = false;
+          renderAssistant();
         }
+        assistantDiv.classList.remove('streaming');
+        assistantDiv.setAttribute('aria-busy', 'false');
+        assistantDiv.removeAttribute('aria-label');
 
         chat.messages.push({ role: 'assistant', content: accumulatedContent });
         saveChatsToStorage();
         scrollToBottom();
         
       } catch (e) {
+        assistantDiv.classList.remove('streaming');
+        assistantDiv.setAttribute('aria-busy', 'false');
+        assistantDiv.removeAttribute('aria-label');
         if (e.name === 'AbortError') {
           if (accumulatedContent) {
             if (isReasoningActive) accumulatedContent += '</think>';
