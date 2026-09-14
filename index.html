@@ -64,8 +64,10 @@
       display: flex; justify-content: space-between; align-items: center;
     }
     .custom-select-display::after { content: '▼'; font-size: 10px; margin-left: 8px; color: #888; flex-shrink: 0; }
+    
+    /* FIX: Changed left: 0; to right: 0; */
     .custom-select-options {
-      display: none; position: absolute; top: 100%; left: 0; margin-top: 4px;
+      display: none; position: absolute; top: 100%; right: 0; margin-top: 4px;
       background: #2a2a2a; border: 1px solid #555; border-radius: 4px;
       max-height: 50vh; overflow-y: auto; width: max-content; min-width: 100%; max-width: 500px; 
       z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.6);
@@ -248,8 +250,10 @@
     function extractAndFormatThinking(text) {
       if (!text) return '';
       
-		const tagRegex = /<\|?(?:s_)?(?:think|thought|thinking|reasoning)(?:_start)?\|?>([\s\S]*?)(?:<\|?(?:\/|e_)?(?:think|thought|thinking|reasoning)(?:_end)?\|?>|$)/gi;
-		const bracketRegex = /\[(think|thought|thinking|reasoning)\]([\s\S]*?)(?:\[\/\1\]|$)/gi;
+      // Catches standard tags, pipe-delimited tokens, and start/end variants 
+      // (e.g., <think>, <|think|>, <|thought_start|>, <s_think>)
+      const tagRegex = /<\|?(?:s_)?(?:think|thought|thinking|reasoning)(?:_start)?\|?>([\s\S]*?)(?:<\|?(?:\/|e_)?(?:think|thought|thinking|reasoning)(?:_end)?\|?>|$)/gi;
+      const bracketRegex = /\[(think|thought|thinking|reasoning)\]([\s\S]*?)(?:\[\/\1\]|$)/gi;
 
       const replacer = (match, tag, content) => {
         const trimmed = content.trim();
