@@ -67,10 +67,10 @@
     
     /* FIX: Changed left: 0; to right: 0; */
     .custom-select-options {
-      display: none; position: absolute; top: 100%; right: 0; margin-top: 4px;
+      display: none; position: absolute; top: 100%; left: 0; margin-top: 4px;
       background: #2a2a2a; border: 1px solid #555; border-radius: 4px;
-      max-height: 50vh; overflow-y: auto; width: max-content; min-width: 100%; max-width: 500px; 
-      z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+      max-height: 50vh; overflow-y: auto; width: 100%; 
+      box-sizing: border-box; z-index: 1000; box-shadow: 0 8px 16px rgba(0,0,0,0.6);
     }
     .custom-select-options.show { display: block; }
     
