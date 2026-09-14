@@ -207,6 +207,30 @@ function deleteChat(id, event) {
   }
 }
 
+function extractReasoningAndVisible(text = '') {
+  const reasoningParts = [];
+  let visible = text;
+
+  visible = visible.replace(/<\|?(?:s_)?(?:think|thought|thinking|reasoning)(?:_start)?\|?>([\s\S]*?)(?:<\|?(?:\/|e_)?(?:think|thought|thinking|reasoning)(?:_end)?\|?>|$)/gi, (match, reason) => {
+    if (reason && reason.trim()) reasoningParts.push(reason.trim());
+    return '';
+  });
+
+  visible = visible.replace(/\[(think|thought|thinking|reasoning)\]([\s\S]*?)(?:\[\/\1\]|$)/gi, (match, label, reason) => {
+    if (reason && reason.trim()) reasoningParts.push(reason.trim());
+    return '';
+  });
+
+  return {
+    reasoning: reasoningParts.join('\n\n').trim(),
+    visible: visible.trim()
+  };
+}
+
+function stripReasoningFromContent(text = '') {
+  return extractReasoningAndVisible(text).visible;
+}
+
 function renderCurrentChatMessages() {
   const chatEl = document.getElementById('chat');
   chatEl.innerHTML = '';
@@ -220,7 +244,9 @@ function renderCurrentChatMessages() {
     if (msg.role === 'user') {
       div.textContent = msg.content;
     } else {
-      div.innerHTML = DOMPurify.sanitize(marked.parse(extractAndFormatThinking(msg.content)));
+      const reasoning = msg.reasoning || extractReasoningAndVisible(msg.content).reasoning;
+      const displayText = reasoning ? `${reasoning ? `<think>${reasoning}</think>` : ''}${msg.content || ''}` : msg.content;
+      div.innerHTML = DOMPurify.sanitize(marked.parse(extractAndFormatThinking(displayText)));
     }
     chatEl.appendChild(div);
   });
@@ -438,7 +464,13 @@ async function sendMessage() {
   if (trimmedPrompt) {
     requestMessages.push({ role: 'system', content: trimmedPrompt });
   }
-  requestMessages.push(...chat.messages);
+
+  chat.messages.forEach(msg => {
+    requestMessages.push({
+      role: msg.role,
+      content: typeof msg.content === 'string' ? stripReasoningFromContent(msg.content) : ''
+    });
+  });
 
   const chatEl = document.getElementById('chat');
   const userDiv = document.createElement('div');
@@ -558,7 +590,12 @@ async function sendMessage() {
     assistantDiv.setAttribute('aria-busy', 'false');
     assistantDiv.removeAttribute('aria-label');
 
-    chat.messages.push({ role: 'assistant', content: accumulatedContent });
+    const { reasoning, visible } = extractReasoningAndVisible(accumulatedContent);
+    chat.messages.push({
+      role: 'assistant',
+      content: visible || accumulatedContent,
+      ...(reasoning ? { reasoning } : {})
+    });
     saveChatsToStorage();
     scrollToBottom();
 
@@ -569,7 +606,12 @@ async function sendMessage() {
     if (e.name === 'AbortError') {
       if (accumulatedContent) {
         if (isReasoningActive) accumulatedContent += '</think>';
-        chat.messages.push({ role: 'assistant', content: accumulatedContent });
+        const { reasoning, visible } = extractReasoningAndVisible(accumulatedContent);
+        chat.messages.push({
+          role: 'assistant',
+          content: visible || accumulatedContent,
+          ...(reasoning ? { reasoning } : {})
+        });
         saveChatsToStorage();
       } else {
         assistantDiv.textContent = '[Request Cancelled]';
