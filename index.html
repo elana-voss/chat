@@ -52,8 +52,10 @@
     <div id="chat"></div>
 
     <div id="input-box">
-      <input type="text" id="message-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') handleSendClick()">
-      <button id="sendBtn" onclick="handleSendClick()">Send</button>
+      <div class="composer-shell">
+        <input type="text" id="message-input" placeholder="Type your message..." onkeydown="if(event.key==='Enter') handleSendClick()">
+        <button id="sendBtn" class="composer-send-btn" aria-label="Send message" title="Send message" onclick="handleSendClick()">➤</button>
+      </div>
     </div>
   </div>
 

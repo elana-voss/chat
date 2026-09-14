@@ -46,7 +46,7 @@ body.sidebar-collapsed .main-hamburger-btn { display: inline-flex; }
 }
 
 /* --- MAIN CONTENT AREA --- */
-.main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; font-family: "Public Sans", sans-serif; }
+.main-content { position: relative; flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; font-family: "Public Sans", sans-serif; }
 
 #config {
   box-sizing: border-box; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
@@ -148,8 +148,15 @@ label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: p
 .thinking-content p { margin: 0 0 6px; line-height: 1.35; }
 .thinking-content p:last-child { margin-bottom: 0; }
 
-#input-box { display: flex; padding: 12px; gap: 8px; background: #2a2a2a; border-top: 1px solid #333; }
-#message-input { flex: 1; font-size: 16px; }
+#input-box { position: absolute; z-index: 5; right: 0; bottom: 16px; left: 0; padding: 0; background: transparent; border: none; pointer-events: none; }
+#input-box::before { position: absolute; right: 0; bottom: -16px; left: 0; height: 128px; background: linear-gradient(to bottom, rgba(26, 26, 26, 0), #1a1a1a 72%); content: ''; pointer-events: none; }
+.composer-shell { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; width: min(calc(100% - 32px), 768px); min-height: 54px; box-sizing: border-box; margin: 0 auto; padding: 8px; background: #2a2a2a; border: 1px solid #444; border-radius: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); pointer-events: auto; }
+#message-input { flex: 1; min-width: 0; border: none; background: transparent; font-size: 16px; }
+#message-input:focus { outline: none; }
+.composer-send-btn { width: 34px; height: 34px; flex: 0 0 34px; padding: 0; border: none; background: transparent; color: #ccc; font-size: 22px; line-height: 1; }
+.composer-send-btn:hover { background: transparent; color: #fff; }
+.composer-send-btn.stop-btn { background: transparent; border: none; color: #e05a57; font-size: 18px; }
+.composer-send-btn.stop-btn:hover { background: transparent; color: #ff7773; }
 
 @media (max-width: 800px) {
   #sidebar { position: fixed; inset: 0 auto 0 0; z-index: 20; width: min(256px, 85vw); height: 100dvh; border-right: 1px solid #333; box-shadow: 8px 0 24px rgba(0, 0, 0, 0.35); }
@@ -168,6 +175,8 @@ label { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: p
   .custom-select-wrapper { grid-column: 3; grid-row: 2; width: 100%; max-width: none; }
   .filter-wrapper input, .custom-select-display { width: 100%; }
   .custom-select-options { max-width: 100%; }
-  #chat { padding: 48px 16px 128px; gap: 22px; }
-  #input-box { padding: 10px; }
+  #chat { padding: 48px 16px 148px; gap: 22px; }
+  #input-box { bottom: 10px; }
+  #input-box::before { bottom: -10px; height: 112px; }
+  .composer-shell { width: calc(100% - 20px); min-height: 52px; border-radius: 12px; }
 }

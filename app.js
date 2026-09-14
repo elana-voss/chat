@@ -532,7 +532,9 @@ async function sendMessage() {
   scrollToBottom();
 
   currentAbortController = new AbortController();
-  sendBtn.textContent = 'Stop';
+  sendBtn.textContent = '■';
+  sendBtn.setAttribute('aria-label', 'Stop generation');
+  sendBtn.title = 'Stop generation';
   sendBtn.classList.add('stop-btn');
 
   let accumulatedContent = '';
@@ -664,7 +666,9 @@ async function sendMessage() {
     scrollToBottom();
   } finally {
     currentAbortController = null;
-    sendBtn.textContent = 'Send';
+    sendBtn.textContent = '➤';
+    sendBtn.setAttribute('aria-label', 'Send message');
+    sendBtn.title = 'Send message';
     sendBtn.classList.remove('stop-btn');
     focusInput();
   }
