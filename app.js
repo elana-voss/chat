@@ -104,7 +104,14 @@ function normalizeChat(chat) {
   if (!chat || typeof chat !== 'object') return null;
   if (!Array.isArray(chat.messages)) chat.messages = [];
   chat.systemPrompt = typeof chat.systemPrompt === 'string' ? chat.systemPrompt : 'You are a helpful agent';
+  chat.baseUrl = typeof chat.baseUrl === 'string' ? chat.baseUrl : (localStorage.getItem('chat_base_url') || 'https://nano-gpt.com/api/v1');
+  chat.apiKey = typeof chat.apiKey === 'string' ? chat.apiKey : (localStorage.getItem('chat_api_key') || '');
+  chat.subOnly = !!chat.subOnly;
   return chat;
+}
+
+function getCurrentChat() {
+  return chats.find(c => c.id === currentChatId) || null;
 }
 
 function loadChatsFromStorage() {
@@ -121,6 +128,25 @@ function loadChatsFromStorage() {
 
 function saveChatsToStorage() {
   localStorage.setItem('chat_app_history', JSON.stringify(chats));
+}
+
+function applyChatConfigToInputs(chat) {
+  const baseUrlInput = document.getElementById('baseUrl');
+  const apiKeyInput = document.getElementById('apiKey');
+  const subOnlyInput = document.getElementById('subOnly');
+
+  if (!baseUrlInput || !apiKeyInput || !subOnlyInput) return;
+
+  const source = chat || {
+    baseUrl: localStorage.getItem('chat_base_url') || 'https://nano-gpt.com/api/v1',
+    apiKey: localStorage.getItem('chat_api_key') || '',
+    subOnly: false
+  };
+
+  baseUrlInput.value = source.baseUrl || 'https://nano-gpt.com/api/v1';
+  apiKeyInput.value = source.apiKey || '';
+  subOnlyInput.checked = !!source.subOnly;
+  updateSubOnlyVisibility();
 }
 
 function saveCurrentSystemPrompt() {
@@ -164,13 +190,25 @@ function renderSidebar() {
 }
 
 function createNewChat() {
+  const sourceChat = getCurrentChat();
+  const inheritedConfig = sourceChat || {
+    baseUrl: localStorage.getItem('chat_base_url') || 'https://nano-gpt.com/api/v1',
+    apiKey: localStorage.getItem('chat_api_key') || '',
+    subOnly: false,
+    modelId: selectedModelId,
+    modelName: selectedModelName
+  };
+
   const newChat = {
     id: 'chat_' + Date.now(),
     title: 'New Chat',
-    modelId: selectedModelId,
-    modelName: selectedModelName,
+    modelId: inheritedConfig.modelId || selectedModelId,
+    modelName: inheritedConfig.modelName || selectedModelName,
     messages: [],
-    systemPrompt: 'You are a helpful agent'
+    systemPrompt: 'You are a helpful agent',
+    baseUrl: inheritedConfig.baseUrl || 'https://nano-gpt.com/api/v1',
+    apiKey: inheritedConfig.apiKey || '',
+    subOnly: !!inheritedConfig.subOnly
   };
   chats.unshift(newChat);
   saveChatsToStorage();
@@ -188,6 +226,7 @@ function switchChat(id) {
     setDisplayModel(selectedModelId, selectedModelName);
   }
 
+  applyChatConfigToInputs(chat);
   renderSidebar();
   renderSystemPromptEditor();
   renderCurrentChatMessages();
@@ -301,8 +340,13 @@ function formatModelName(m) {
 }
 
 function saveConfig() {
-  localStorage.setItem('chat_base_url', document.getElementById('baseUrl').value.trim());
-  localStorage.setItem('chat_api_key', document.getElementById('apiKey').value.trim());
+  const chat = getCurrentChat();
+  if (!chat) return;
+
+  chat.baseUrl = document.getElementById('baseUrl').value.trim();
+  chat.apiKey = document.getElementById('apiKey').value.trim();
+  chat.subOnly = document.getElementById('subOnly').checked;
+  saveChatsToStorage();
 }
 
 function onKeyInput() {
@@ -316,9 +360,10 @@ function onKeyInput() {
 }
 
 async function fetchModels() {
-  const rawUrl = document.getElementById('baseUrl').value.trim();
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const subOnly = document.getElementById('subOnly').checked;
+  const chat = getCurrentChat();
+  const rawUrl = (chat && typeof chat.baseUrl === 'string' ? chat.baseUrl : document.getElementById('baseUrl').value.trim()).trim();
+  const apiKey = (chat && typeof chat.apiKey === 'string' ? chat.apiKey : document.getElementById('apiKey').value.trim()).trim();
+  const subOnly = chat ? !!chat.subOnly : document.getElementById('subOnly').checked;
 
   if (!apiKey) {
     document.querySelector('.custom-select-display').textContent = 'Enter API Key above...';
@@ -438,9 +483,9 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  const rawUrl = document.getElementById('baseUrl').value.trim();
+  const rawUrl = (chat.baseUrl || document.getElementById('baseUrl').value.trim()).trim();
   const baseUrl = rawUrl.replace(/\/$/, "");
-  const apiKey = document.getElementById('apiKey').value.trim();
+  const apiKey = (chat.apiKey || document.getElementById('apiKey').value.trim()).trim();
   const model = selectedModelId;
 
   if (!model) {
